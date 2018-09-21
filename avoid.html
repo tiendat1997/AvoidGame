@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>Avoid Game</title>
+  <style>
+    body {
+      text-align: center;
+      margin: 0;
+    }
+
+    canvas {
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background-color: white;
+    }
+
+    .swal-icon img {
+      width: 150px;
+      height: 150px;
+    }
+
+    .swal-footer {
+      text-align: center;
+    }
+  </style>
+  <script src="util.js"></script>
+  <script src="sweet-alert.min.js"></script>
+</head>
+
+<body>
+  <canvas id="canvas"></canvas>
+</body>
+<script>   
+  // DECLARATION
+  var ball = [];
+  var defaultRadius = 30;
+  var canvas = document.getElementById("canvas");
+  var graph = canvas.getContext("2d");
+  var WIDTH, HEIGHT;
+  var seedBall = 1;
+  var counter = 0, score = 0;
+  var startTime;
+  var theInterval, ballInterval;
+  var player;
+
+  function setEntryPoint() {
+    let centerVer = window.innerHeight / 2;
+    let centerHor = window.innerWidth / 2;
+  }
+  function duplicateBall(b, x, y) { // duplicate and break out // b- ball
+    let radius = b.getRadius();
+    if (radius < 15) {
+      return;
+    }
+    let dx = getRandomInt(-5, 5);
+    let dy = getRandomInt(-5, 5);
+    b.setRadius(radius / 2);
+    ball.push(new Ball(x, y, radius / 2 + 2));
+  }
+  function generateBall(num) {
+    // x location of target, y location of target
+    let centerVer = window.innerHeight / 2;
+    let centerHor = window.innerWidth / 2;
+    for (var i = 0; i < num; i++) {
+      ball.push(new Ball(centerHor, centerVer, defaultRadius));
+    }
+  }
+
+
+  // PLAYER OBJECT
+  function Player() {
+    // Properties
+    var x = window.innerWidth / 2;
+    var y = 200;
+    var playerColor = 'red';
+    var radius = 25;
+    var speed = 18;
+    // Method
+    this.draw = draw;
+    function draw() {
+      graph.beginPath();
+      graph.fillStyle = playerColor;
+      graph.arc(x, y, radius, 0, 2 * Math.PI);
+      graph.fill();
+      this.isHit();
+      // Check Hit
+    }
+    this.setX = setX;
+    function setX(newX) {
+      x = newX;
+    }
+    this.setY = setY;
+    function setY(newY) {
+      y = newY;
+    }
+    this.getSpeed = getSpeed;
+    function getSpeed() {
+      return speed;
+    }
+    this.getX = getX;
+    function getX() {
+      return x;
+    }
+    this.getY = getY;
+    function getY() {
+      return y;
+    }
+    this.getR = getR;
+    function getR() {
+      return radius;
+    }
+    this.isHit = isHit;
+    // Check Hit by ball --> Game Over
+    function isHit() {
+      for (var i = 0; i < ball.length; i++) {
+        if (Math.sqrt(Math.pow(Math.abs(x - ball[i].getX()), 2) + Math.pow(Math.abs(y - ball[i].getY()), 2)) <= (radius + ball[i].getRadius())) {
+          clearInterval(theInterval);
+          clearInterval(ballInterval);
+          if (score < 90) {
+            // show alert loose
+            showLoseAlert();
+          }
+          else {
+            showWinAlert();
+          }
+        }
+      }
+    }
+  }
+  // BALL OBJECT
+  function Ball(newX, newY, newR) {
+    // Properties
+    var x = newX;
+    var y = newY;
+    var dx = 0;
+    var dy = 3;
+    var radius = newR;
+    var counter = 0;
+    var ballColor = getRandomColorRGB();
+    // Method
+    this.draw = draw;
+    function draw() {
+      graph.beginPath();
+      graph.save();
+      graph.fillStyle = ballColor;
+      graph.globalAlpha = "0.8";
+      graph.arc(x, y, radius, 0, Math.PI * 2);
+      graph.fill();
+      graph.closePath();
+      graph.restore();
+    }
+    this.setX = setX;
+    function setX(newX) {
+      x = newX;
+    }
+    this.setY = setY;
+    function setY(newY) {
+      y = newY;
+    }
+    this.setRadius = setRadius;
+    function setRadius(newR) {
+      radius = newR;
+    }
+    this.getX = getX;
+    function getX() {
+      return x;
+    }
+    this.getY = getY;
+    function getY() {
+      return y;
+    }
+    this.getRadius = getRadius;
+    function getRadius() {
+      return radius;
+    }
+    this.move = move;
+    function move() {
+      // increase x, y
+      x += dx;
+      y += dy;
+      // Bounce on a right and left
+      if (x + dx + radius > WIDTH || x + dx - radius < 0) {
+        dx = -dx;
+        dy = getRandomInt(-4, 4);
+        counter++;
+        if (counter % 4 == 0) {
+          duplicateBall(this, x, y);
+        }
+        ballColor = getRandomColorRGB();
+      }
+      // Bounce if ball hits the top or hits the bottom
+      if (y + dy - radius < 0 || y + dy + radius > HEIGHT) {
+        dy = -dy;
+        dx = getRandomInt(-4, 4);
+        counter++;
+        if (counter % 4 == 0) {
+          duplicateBall(this, x, y);
+        }
+        ballColor = getRandomColorRGB();
+      }
+    }
+  }
+  // MAIN GAME
+  function playGame() {
+    graph.clearRect(0, 0, WIDTH, HEIGHT);
+    // clear Canvas for each repeatation
+    player.draw();
+    for (var i = 0; i < ball.length; i++) {
+      ball[i].move()
+      ball[i].draw();
+    }
+    drawElapsedTime();
+  }
+  // SCORE  
+  function drawElapsedTime() {
+    var elapsed = parseInt((new Date() - startTime) / 1000);
+    graph.save();
+    graph.beginPath();
+    graph.fillStyle = "red";
+    graph.globalAlpha = "0.5";
+    graph.fillText(elapsed + " secs", WIDTH - 65, 20); // WIDTH - 65: X COORDINATE ; 20: Y COORDINATE ;
+    score = elapsed;
+    graph.closePath();
+    graph.restore();
+  }
+  // KEYSTATE
+  function arrowKeyDown(e) {
+    var stepSize = 1; // Increase stepSize
+    if (e.keyCode == 37)  // left
+    {
+      player.setX(player.getX() - player.getSpeed());
+      if (player.getX() < 0) {
+        player.setX(0);
+      }
+    }
+    else if (e.keyCode == 38) // up
+    {
+      player.setY(player.getY() - player.getSpeed());
+      if (player.getY() < 0) {
+        player.setY(0);
+      }
+    }
+    else if (e.keyCode == 39) // right
+    {
+      player.setX(player.getX() + player.getSpeed());
+      if ((player.getX() + player.getR()) > canvas.width) {
+        player.setX(canvas.width - player.getR());
+      }
+    }
+    else if (e.keyCode == 40) // down
+    {
+      player.setY(player.getY() + player.getSpeed());
+      if ((player.getY() + player.getR()) > canvas.height) {
+        player.setY(canvas.height - player.getR());
+      }
+    }
+  }
+  document.addEventListener('keydown', arrowKeyDown);    
+</script>
+<script>    
+  window.onload = function () {    
+    showPlayAlert();
+  }
+  function startGame() {
+    
+    var myWidth = window.innerWidth - 5;
+    var myHeight = window.innerHeight - 5;    
+    graph.canvas.width = myWidth;
+    graph.canvas.height = myHeight;
+    graph.clearRect(0, 0, myWidth, myHeight);
+
+    player = new Player();
+    ball = [];
+
+    WIDTH = canvas.width;
+    HEIGHT = canvas.height;
+    startTime = new Date();
+    theInterval = setInterval(playGame, 20);
+    ballInterval = setInterval(function () {
+      if (counter % 30 === 0) seedBall++;
+      generateBall(seedBall);
+    }, 15000);
+    setEntryPoint();
+    generateBall(2);    
+  }   
+</script>
+
+</html>
