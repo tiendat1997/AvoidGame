@@ -43,7 +43,7 @@ function showLoseAlert() {
 
 function showWinAlert() {
   swal({
-    title: "^^ YOU WIN ^^",    
+    title: "^^ YOU WON ^^",    
     icon: "success",    
   }).then((value) => {
     showPlayAlert();
