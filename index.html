@@ -56,8 +56,8 @@
     if (radius < 15) {
       return;
     }
-    let dx = getRandomInt(-5, 5);
-    let dy = getRandomInt(-5, 5);
+    let dx = getRandomInt(-8, 8);
+    let dy = getRandomInt(-8, 8);
     b.setRadius(radius / 2);
     ball.push(new Ball(x, y, radius / 2 + 2));
   }
@@ -185,7 +185,7 @@
       // Bounce on a right and left
       if (x + dx + radius > WIDTH || x + dx - radius < 0) {
         dx = -dx;
-        dy = getRandomInt(-4, 4);
+        dy = getRandomInt(-8, 8);
         counter++;
         if (counter % 4 == 0) {
           duplicateBall(this, x, y);
@@ -195,7 +195,7 @@
       // Bounce if ball hits the top or hits the bottom
       if (y + dy - radius < 0 || y + dy + radius > HEIGHT) {
         dy = -dy;
-        dx = getRandomInt(-4, 4);
+        dx = getRandomInt(-8, 8);
         counter++;
         if (counter % 4 == 0) {
           duplicateBall(this, x, y);
